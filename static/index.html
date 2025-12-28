@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire Escape Simulator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 Fire Escape Simulator</h1>
+            <p>AI-powered pathfinding to escape from fire</p>
+        </header>
+
+        <div class="content">
+            <div class="controls">
+                <div class="control-section">
+                    <h3>Building Setup</h3>
+                    <div class="input-group">
+                        <label>Grid Size:</label>
+                        <input type="number" id="rows" value="15" min="5" max="30">
+                        <span>×</span>
+                        <input type="number" id="cols" value="20" min="5" max="30">
+                        <button onclick="createGrid()">Create Grid</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Edit Mode</h3>
+                    <div class="button-group">
+                        <button class="mode-btn active" data-mode="0" onclick="setMode(0)">Empty</button>
+                        <button class="mode-btn" data-mode="1" onclick="setMode(1)">Wall</button>
+                        <button class="mode-btn" data-mode="2" onclick="setMode(2)">Fire</button>
+                        <button class="mode-btn" data-mode="3" onclick="setMode(3)">Exit</button>
+                        <button class="mode-btn" data-mode="4" onclick="setMode(4)">Start</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Algorithm</h3>
+                    <select id="algorithm">
+                        <option value="bfs">BFS (Breadth-First Search)</option>
+                        <option value="ucs">UCS (Uniform Cost Search)</option>
+                        <option value="astar">A* Search</option>
+                        <option value="greedy">Greedy Best-First (Heuristic)</option>
+                    </select>
+                    
+                    <div id="heuristicSelect" style="margin-top: 10px;">
+                        <label>Heuristic:</label>
+                        <select id="heuristic">
+                            <option value="manhattan">Manhattan Distance</option>
+                            <option value="euclidean">Euclidean Distance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Actions</h3>
+                    <button class="action-btn" onclick="findPath()">🚀 Find Path</button>
+                    <button class="action-btn compare-btn" onclick="compareAlgorithms()">⚖️ Compare All Algorithms</button>
+                    <button class="action-btn" onclick="startSimulation()">▶️ Start Simulation</button>
+                    <button class="action-btn" onclick="stopSimulation()">⏸️ Stop Simulation</button>
+                    <button class="action-btn" onclick="clearPath()">Clear Path</button>
+                    <button class="action-btn" onclick="resetGrid()">Reset Grid</button>
+                    <button class="action-btn" onclick="randomBuilding()">Random Building</button>
+                </div>
+
+                <div class="control-section">
+                    <h3>Simulation Settings</h3>
+                    <div class="input-group">
+                        <label>Agents:</label>
+                        <input type="number" id="agentCount" value="5" min="1" max="20">
+                    </div>
+                    <div class="input-group">
+                        <label>Speed:</label>
+                        <input type="range" id="speedControl" value="5" min="1" max="10">
+                    </div>
+                </div>
+
+                <div class="control-section" id="stats">
+                    <h3>Statistics</h3>
+                    <div id="statsContent">
+                        <p>Click "Find Path" to see results</p>
+                    </div>
+                </div>
+
+                <div class="control-section" id="recommendation" style="display: none;">
+                    <h3>💡 AI Recommendation</h3>
+                    <div id="recommendationContent"></div>
+                </div>
+
+                <div class="legend">
+                    <h3>Legend</h3>
+                    <div class="legend-item">
+                        <div class="cell empty"></div>
+                        <span>Empty</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell wall"></div>
+                        <span>Wall</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell fire"></div>
+                        <span>Fire</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell exit"></div>
+                        <span>Exit</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell start"></div>
+                        <span>Start</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="cell path"></div>
+                        <span>Path</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-container">
+                <div class="canvas-wrapper">
+                    <div id="grid"></div>
+                    <canvas id="agentCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
