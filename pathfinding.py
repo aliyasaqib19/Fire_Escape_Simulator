@@ -1,3 +1,40 @@
+def bfs_all_shortest_paths(building, start, goals):
+    """
+    Find all shortest paths from start to any exit using BFS.
+    Returns: (list of paths, nodes_explored)
+    """
+    if not start or not goals:
+        return [], 0
+
+    from collections import deque, defaultdict
+    queue = deque([(start, [start])])
+    visited = {start: 0}  # node: path_length
+    paths = []
+    min_length = None
+    nodes_explored = 0
+
+    while queue:
+        current, path = queue.popleft()
+        nodes_explored += 1
+
+        # If we reach an exit
+        if current in goals:
+            if min_length is None:
+                min_length = len(path)
+            if len(path) == min_length:
+                paths.append(path)
+            continue  # Don't expand further from goal
+
+        # Stop expanding if path is already longer than min_length
+        if min_length is not None and len(path) > min_length:
+            continue
+
+        for neighbor in building.get_neighbors(current[0], current[1]):
+            if neighbor not in visited or len(path) < visited[neighbor]:
+                visited[neighbor] = len(path)
+                queue.append((neighbor, path + [neighbor]))
+
+    return paths, nodes_explored
 """
 Pathfinding Module - Implements BFS, UCS, A*, and Heuristic search algorithms
 """
@@ -77,9 +114,11 @@ def ucs(building, start, goals):
         if current in visited and visited[current] < cost:
             continue
         
-        # Explore neighbors (uniform cost = 1 per step)
+        # Explore neighbors with fire physics costs
         for neighbor in building.get_neighbors(current[0], current[1]):
-            new_cost = cost + 1
+            # Get the cost of moving to this neighbor based on fire physics
+            neighbor_cost = building.get_cell_cost(neighbor[0], neighbor[1])
+            new_cost = cost + neighbor_cost
             
             if neighbor not in visited or new_cost < visited[neighbor]:
                 visited[neighbor] = new_cost
@@ -127,9 +166,11 @@ def a_star(building, start, goals, heuristic='manhattan'):
         
         visited[current] = g_score
         
-        # Explore neighbors
+        # Explore neighbors with fire physics costs
         for neighbor in building.get_neighbors(current[0], current[1]):
-            new_g_score = g_score + 1
+            # Get the cost of moving to this neighbor based on fire physics
+            neighbor_cost = building.get_cell_cost(neighbor[0], neighbor[1])
+            new_g_score = g_score + neighbor_cost
             
             if neighbor not in visited or new_g_score < visited[neighbor]:
                 h_score = min_heuristic(neighbor)

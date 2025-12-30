@@ -22,7 +22,13 @@ def find_path_endpoint():
     Expects JSON: {
         "grid": 2D array,
         "algorithm": "bfs"|"ucs"|"astar"|"greedy",
-        "heuristic": "manhattan"|"euclidean"
+        "heuristic": "manhattan"|"euclidean",
+        "firePhysics": {
+            "enabled": boolean,
+            "fireIntensity": 2D array (0-10),
+            "smokeDensity": 2D array (0-10),
+            "heatLevel": 2D array (0-10)
+        } (optional)
     }
     """
     try:
@@ -30,6 +36,7 @@ def find_path_endpoint():
         grid_data = data.get('grid')
         algorithm = data.get('algorithm', 'bfs')
         heuristic = data.get('heuristic', 'manhattan')
+        fire_physics = data.get('firePhysics')
         
         if not grid_data:
             return jsonify({'error': 'No grid data provided'}), 400
@@ -44,6 +51,14 @@ def find_path_endpoint():
         for i in range(rows):
             for j in range(cols):
                 building.set_cell(i, j, grid_data[i][j])
+        
+        # Set fire physics if provided
+        if fire_physics and fire_physics.get('enabled'):
+            building.set_fire_physics(
+                fire_physics.get('fireIntensity'),
+                fire_physics.get('smokeDensity'),
+                fire_physics.get('heatLevel')
+            )
         
         # Validate building has start and exit
         if not building.start_position:
@@ -93,6 +108,43 @@ def spread_fire_endpoint():
             'fire_cells': len(building.fire_cells)
         })
     
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/find_all_paths', methods=['POST'])
+def find_all_paths_endpoint():
+    """
+    Find all shortest escape paths endpoint
+    Expects JSON: {
+        "grid": 2D array,
+        "algorithm": "bfs" (only BFS supported for all paths)
+    }
+    """
+    try:
+        data = request.json
+        grid_data = data.get('grid')
+        if not grid_data:
+            return jsonify({'error': 'No grid data provided'}), 400
+        rows = len(grid_data)
+        cols = len(grid_data[0]) if rows > 0 else 0
+        building = Building(rows, cols)
+        for i in range(rows):
+            for j in range(cols):
+                building.set_cell(i, j, grid_data[i][j])
+        if not building.start_position:
+            return jsonify({'error': 'No start position set'}), 400
+        if not building.exits:
+            return jsonify({'error': 'No exits set'}), 400
+        # Import the new function
+        from pathfinding import bfs_all_shortest_paths
+        paths, nodes_explored = bfs_all_shortest_paths(building, building.start_position, building.exits)
+        return jsonify({
+            'paths': paths,
+            'nodes_explored': nodes_explored,
+            'path_count': len(paths),
+            'path_length': len(paths[0]) if paths else 0
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

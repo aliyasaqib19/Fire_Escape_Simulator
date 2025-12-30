@@ -16,6 +16,11 @@ class Building:
         self.exits = []
         self.start_position = None
         
+        # Fire physics arrays (initialized to None, can be set later)
+        self.fire_intensity = None
+        self.smoke_density = None
+        self.heat_level = None
+        
     def set_cell(self, row, col, value):
         """Set cell value (0=empty, 1=wall, 2=fire, 3=exit, 4=start)"""
         if 0 <= row < self.rows and 0 <= col < self.cols:
@@ -40,6 +45,48 @@ class Building:
             return False
         cell_value = self.grid[row][col]
         return cell_value not in [1, 2]  # Not wall or fire
+    
+    def set_fire_physics(self, fire_intensity, smoke_density, heat_level):
+        """
+        Set fire physics arrays from frontend
+        :param fire_intensity: 2D array of fire intensity values (0-10)
+        :param smoke_density: 2D array of smoke density values (0-10)
+        :param heat_level: 2D array of heat level values (0-10)
+        """
+        self.fire_intensity = fire_intensity
+        self.smoke_density = smoke_density
+        self.heat_level = heat_level
+    
+    def get_cell_cost(self, row, col):
+        """
+        Calculate movement cost for a cell based on fire physics
+        :param row: Row index
+        :param col: Column index
+        :return: Cost value (higher = more dangerous)
+        """
+        if not (0 <= row < self.rows and 0 <= col < self.cols):
+            return float('inf')  # Out of bounds
+        
+        cell_value = self.grid[row][col]
+        
+        # Walls are impassable
+        if cell_value == 1:
+            return float('inf')
+        
+        # Direct fire cells are extremely dangerous
+        if cell_value == 2:
+            return 1000
+        
+        # If fire physics is enabled, calculate enhanced cost
+        if self.fire_intensity and self.smoke_density and self.heat_level:
+            base_cost = 1
+            fire_cost = self.fire_intensity[row][col] * 10
+            smoke_cost = self.smoke_density[row][col] * 5
+            heat_cost = self.heat_level[row][col] * 3
+            return base_cost + fire_cost + smoke_cost + heat_cost
+        
+        # Default cost for normal cells
+        return 1
     
     def get_neighbors(self, row, col):
         """Get valid walkable neighbors (up, down, left, right)"""
